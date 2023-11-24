@@ -5,7 +5,7 @@ import numpy as np
 from scipy.io import loadmat
 from utils import read
 
-from utils.feat_manipulation import match_feats
+from utils.feat_manipulation import feat_matching
 
 
 def main(feat_file = 'surf_features.mat'):
@@ -17,10 +17,8 @@ def main(feat_file = 'surf_features.mat'):
     feat = f['features']    
     feat=feat.squeeze() # remove the extra dimension
 
-    match_feats(feat[0], feat[1])
+    feat_matching(feat[1], feat[2])
         
-        
-    
 
 if __name__ == '__main__':
     main()

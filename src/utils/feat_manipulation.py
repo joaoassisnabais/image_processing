@@ -1,8 +1,7 @@
 import numpy as np
-from sklearn.neighbors import NearestNeighbors
 from scipy.spatial.distance import cdist
 
-def match_feats(feats1, feats2, k=2):
+def feat_matching(feats1, feats2, k=2):
     """
     Match features between two images using nearest neighbors.
 
@@ -26,24 +25,30 @@ def match_feats(feats1, feats2, k=2):
     # Extract keypoints and descriptors from features
     kp1, kp2 = feats1[:2], feats2[:2]
     des1, des2 = feats1[2:], feats2[2:]
-      
-    # Fit a k-NN model on descriptors of set 2
-    nbrs = NearestNeighbors(n_neighbors=k, algorithm='auto').fit(des2)
     
-    # Query nearest neighbors for descriptors from set 1
-    distances, indices = nbrs.kneighbors(des1, n_neighbors=k)
+    # TODO: see if there's a better way to do that
+    #Limiting the number of descriptors to a restricted number
+    # NOTE: Transpose because it should be 2000x64 given that there are 2000 kps with 64 descriptors
+    m = max(des1.shape[1], des2.shape[1])
+    des1 = des1[:, :m].T
+    des2 = des2[:, :m].T
     
-    # Apply Lowe's ratio test to select good matches
+    # Calculate distances between descriptors
+    # NOTE: Using cdist because it's supports cosine distance
+    distances = cdist(des1, des2, metric='cosine')
+
+    # Apply ratio test to find good matches
     threshold = 0.75
     good_matches = []
-    for i, (dists, idxs) in enumerate(zip(distances, indices)):
-        if dists[0] < threshold * dists[1]:
-            good_matches.append((i, idxs[0]))
+    for i, dist in enumerate(distances):
+        sorted_indices = np.argsort(dist)
+        best_match_idx = sorted_indices[0]
+        second_best_match_idx = sorted_indices[1]
+
+        if dist[best_match_idx] < threshold * dist[second_best_match_idx]:
+            good_matches.append((i, best_match_idx))
     
-    # Create matches array
-    matches = np.zeros((des1.shape[0], 2))
-    matches[:, 0] = np.arange(des1.shape[0])
-    matches[:, 1] = indices[:, 0]
-    
-    return matches.astype(int)
+
+
+    return kp1, kp2
 
