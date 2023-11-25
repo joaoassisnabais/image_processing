@@ -2,7 +2,9 @@ def parse_config_file (file_path):
     config_dict = {} 
     
     with open(file_path, 'r') as file:
+
         for line in file: 
+       
             line = line.strip()
             
             # Ignore comments

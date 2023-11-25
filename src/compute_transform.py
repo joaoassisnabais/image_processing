@@ -8,10 +8,13 @@ from utils import read
 from utils.feat_manipulation import feat_matching
 
 
-def main(feat_file = 'surf_features.mat'):
+def main(config_file, feat_file = 'surf_features.mat'):
 
-
-    mat_path = os.path.join(os.path.dirname(__file__), 'data', 'surf_features.mat')
+    # Read the config file
+    config = read.parse_config_file(config_file)
+    
+    mat_path = config['keypoints_out'][0][0]
+    #mat_path = os.path.join(os.path.dirname(__file__), 'data', 'surf_features.mat')
 
     f = loadmat(mat_path)
     feat = f['features']    
@@ -21,4 +24,4 @@ def main(feat_file = 'surf_features.mat'):
         
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1])
