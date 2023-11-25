@@ -21,6 +21,11 @@ def feat_matching(feats1, feats2, k=2):
         The first column is the index of the feature from the first image,
         while the second column is the index of the feature from the second
         image.
+
+    matches1to2 : array
+        Array of shape (N, 2) TO BE USED FON DEBUG ONLY. 	
+        Matches from the first image to the second one, which means that keypoints1[i] has a corresponding point in keypoints2[matches1to2[i]] 
+
     """
     # Extract keypoints and descriptors from features
     # NOTE: Transpose because it should be kps x (64/128) and not (64/128) x kps
@@ -44,13 +49,18 @@ def feat_matching(feats1, feats2, k=2):
     # Apply Lowe's ratio test to find good matches
     threshold = 0.75
     good_matches = []
+
     for i, (dists, idxs) in enumerate(zip(distances, indices)):
         if dists[0] < threshold * dists[1]:
             good_matches.append((i, idxs[0]))
+            
     
     
     src_kps = kp1[[x for x, y in good_matches]]
     dest_kps = kp2[[y for x, y in good_matches]]
+    matches1to2 = [[np.where(kp1==src_kps[i])[0][0], np.where(kp2==dest_kps[i])[0][0]] for i in range(len(good_matches))]
+
     
-    return src_kps, dest_kps
+    
+    return src_kps, dest_kps, matches1to2
 
