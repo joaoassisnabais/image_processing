@@ -52,11 +52,11 @@ def show_image_and_features(video_path, index1, index2, keypoints1, keypoints2):
     plt.show()
 
 
-def show_homogaphies(src, dest, H, video_path):
+def show_homogaphies(src, dest, H, video_path, index1, index2):
     Hgood, _ = cv2.findHomography(src, dest)
 
-    image = get_single_frame(video_path,1)
-    image2 = get_single_frame(video_path,2)
+    image = get_single_frame(video_path,index1)
+    image2 = get_single_frame(video_path,index2)
 
 
     transformed_image = cv2.warpPerspective(image, H, (image.shape[1], image.shape[0]))
