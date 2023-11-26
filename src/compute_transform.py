@@ -5,11 +5,9 @@ import numpy as np
 from scipy.io import loadmat
 from utils import read
 
-import matplotlib.pyplot as plt
-import cv2
-
 from utils.feat_manipulation import feat_matching
-from utils.debug_funcs import show_image_and_features
+from utils.debug_funcs import show_image_and_features, get_single_frame, show_homogaphies
+from utils.homography import homography
 
 
 
@@ -27,8 +25,11 @@ def main(config_file, feat_file = 'surf_features.mat'):
 
     matches1, matches2, match1to2 = feat_matching(feat[1], feat[2])
 
-    show_image_and_features("src/data/backcamera_s1.mp4", 1, 2, matches1, matches2) # show the keypoints to make sure they make sense
-    
+    #show_image_and_features("src/data/backcamera_s1.mp4", 1, 2, matches1, matches2) # show the keypoints to make sure they make sense
+
+    H = homography(matches1, matches2)
+
+    show_homogaphies(matches1, matches2, H, "src/data/backcamera_s1.mp4")
 
 
 if __name__ == '__main__':

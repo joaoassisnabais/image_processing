@@ -50,3 +50,25 @@ def show_image_and_features(video_path, index1, index2, keypoints1, keypoints2):
     axes[1].axis('off') 
 
     plt.show()
+
+
+def show_homogaphies(src, dest, H, video_path):
+    Hgood, _ = cv2.findHomography(src, dest)
+
+    image = get_single_frame(video_path,1)
+    image2 = get_single_frame(video_path,2)
+
+
+    transformed_image = cv2.warpPerspective(image, H, (image.shape[1], image.shape[0]))
+    transformed_imageCV = cv2.warpPerspective(image, Hgood, (image.shape[1], image.shape[0]))
+
+    fig, axes = plt.subplots(2, 2, figsize=(10, 10)) 
+    axes[0, 0].imshow(image)
+    axes[0, 0].axis('off') 
+    axes[0, 1].imshow(image2)
+    axes[0, 1].axis('off') 
+    axes[1, 0].imshow(transformed_image)
+    axes[1, 0].axis('off') 
+    axes[1, 1].imshow(transformed_imageCV)
+    axes[1, 1].axis('off') 
+    plt.show()
