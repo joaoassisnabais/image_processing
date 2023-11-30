@@ -12,7 +12,6 @@ def homography(src, dest):
     dest : numpy.ndarray
         Features from the second image.
 
-
     Returns
     -------
     A : numpy.ndarray
