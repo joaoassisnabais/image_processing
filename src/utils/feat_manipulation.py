@@ -16,11 +16,11 @@ def feat_matching(feats1, feats2, k=2):
 
     Returns
     -------
-    matches : numpy.ndarray
-        Array of shape (N, 2) where each row is a match between two features.
-        The first column is the index of the feature from the first image,
-        while the second column is the index of the feature from the second
-        image.
+    src_kps : numpy.ndarray
+        Array of shape (N, 2) where we have the keypoints from the first image that have a corresponding point in the second image.
+        
+    dest_kps : numpy.ndarray
+        Array of shape (N, 2) where we have the keypoints from the second image that have a corresponding point in the first image.
 
     matches1to2 : array
         Array of shape (N, 2) TO BE USED FON DEBUG ONLY. 	
@@ -34,7 +34,7 @@ def feat_matching(feats1, feats2, k=2):
     des1, des2 = feats1[2:], feats2[2:]
     
     # TODO: see if there's a better way to do that
-    #Limiting the number of descriptors to a restricted number
+    #Limiting the descriptors to a restricted number
     m = min(des1.shape[1], des2.shape[1])
     des1 = des1[:, :m].T
     des2 = des2[:, :m].T
@@ -53,14 +53,10 @@ def feat_matching(feats1, feats2, k=2):
     for i, (dists, idxs) in enumerate(zip(distances, indices)):
         if dists[0] < threshold * dists[1]:
             good_matches.append((i, idxs[0]))
-            
-    
     
     src_kps = kp1[[x for x, y in good_matches]]
     dest_kps = kp2[[y for x, y in good_matches]]
     matches1to2 = [[np.where(kp1==src_kps[i])[0][0], np.where(kp2==dest_kps[i])[0][0]] for i in range(len(good_matches))]
-
-    
     
     return src_kps, dest_kps, matches1to2
 

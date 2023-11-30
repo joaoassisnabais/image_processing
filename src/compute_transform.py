@@ -14,7 +14,8 @@ from utils.homography import homography
 def main(config_file, feat_file = 'surf_features.mat'):
 
     # Read the config file
-    config = read.parse_config_file(config_file)
+    if config_file is None:
+        config = read.parse_config_file(config_file)
 
     map_or_all = config['transforms'][0][1]
     mat_path = config['keypoints_out'][0][0]
@@ -32,7 +33,7 @@ def main(config_file, feat_file = 'surf_features.mat'):
             transforms_out = np.array([])
 
             matches1, matches2, match1to2 = feat_matching(feat[i], feat[0])
-            #show_image_and_features("src/data/backcamera_s1.mp4", 1, 2, matches1, matches2) # show the keypoints to make sure they make sense
+            show_image_and_features("src/data/backcamera_s1.mp4", 1, 2, matches1, matches2) # show the keypoints to make sure they make sense
             H = homography(matches1, matches2)
             #show_homogaphies(matches1, matches2, H, "src/data/backcamera_s1.mp4", 0, i)
 
