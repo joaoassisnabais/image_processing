@@ -49,7 +49,6 @@ def feat_matching(feats1, feats2, k=2):
     # Apply Lowe's ratio test to find good matches
     threshold = 0.75
     good_matches = []
-
     for i, (dists, idxs) in enumerate(zip(distances, indices)):
         if dists[0] < threshold * dists[1]:
             good_matches.append((i, idxs[0]))
