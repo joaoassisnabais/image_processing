@@ -24,6 +24,17 @@ def main(config_file, feat_file = 'surf_features.mat'):
     f = loadmat(mat_path)
     feat = f['features']    
     feat=feat.squeeze() # remove the extra dimension
+    print(feat.shape)
+    print(feat[0].shape)
+    print(feat[0][0].shape)
+    print(type(feat))
+    print(type(feat[0]))
+    print(type(feat[0][0].shape))
+    print(feat.dtype)
+    print(feat[0].dtype)
+    print(feat[0][0].dtype)
+
+
 
 
     transforms_out_all = np.empty((0,11))
@@ -32,8 +43,9 @@ def main(config_file, feat_file = 'surf_features.mat'):
             transforms_out = np.array([])
 
             matches1, matches2, match1to2 = feat_matching(feat[i], feat[0])
-            #show_image_and_features("src/data/backcamera_s1.mp4", 1, 2, matches1, matches2) # show the keypoints to make sure they make sense
+            show_image_and_features("src/data/backcamera_s1.mp4", 1, 2, matches1, matches2) # show the keypoints to make sure they make sense
             H = homography(matches1, matches2)
+            print(H)
             #show_homogaphies(matches1, matches2, H, "src/data/backcamera_s1.mp4", 0, i)
 
             transforms_out = np.concatenate((transforms_out, np.asarray([0,i])))
