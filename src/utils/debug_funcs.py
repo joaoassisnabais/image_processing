@@ -1,5 +1,6 @@
 import cv2
 from matplotlib import pyplot as plt
+from scipy.io import loadmat, savemat
 
 
 def get_single_frame(file_path, frame_number):
@@ -22,8 +23,49 @@ def get_single_frame(file_path, frame_number):
 
     return frame
 
+def compare_process_video_sift(video_path, out_mat_path, frame_index):
+    sift = cv2.SIFT_create(2000)
+
+    frame1 = get_single_frame(video_path, frame_index)
+
+    f = loadmat(out_mat_path)
+    feat = f['features']    
+    feat = feat.squeeze() # remove the extra dimension
+    feat_frame = feat[frame_index]
+    print(feat_frame.shape[1])
+    kp1 = feat_frame[:2].T
+    print(kp1)
+
+    keypointsCV1 = []
+    for i in range(len(kp1)):
+        keypointsCV1.append(cv2.KeyPoint(int(kp1[i][0]), int(kp1[i][1]), 1))
+
+    keypoints1_sift, descriptors1 = sift.detectAndCompute(frame1, None)
+
+
+    image1 = cv2.drawKeypoints(frame1, keypointsCV1, 0, (255, 0, 0), flags=cv2.DRAW_MATCHES_FLAGS_DEFAULT)
+
+    image2 = cv2.drawKeypoints(frame1, keypoints1_sift, 0, (255, 0, 0), flags=cv2.DRAW_MATCHES_FLAGS_DEFAULT)
+
+
+    fig, axes = plt.subplots(1, 2, figsize=(10, 5)) 
+    axes[0].imshow(image1)
+    axes[0].axis('off') 
+
+    axes[1].imshow(image2)
+    axes[1].axis('off') 
+    axes[1].set_title("sift")
+
+    plt.show()
+
+
+
+
+
+
 
 def show_image_and_features(video_path, index1, index2, keypoints1, keypoints2):
+
 
     frame1 = get_single_frame(video_path, index1)
     frame2 = get_single_frame(video_path, index2)

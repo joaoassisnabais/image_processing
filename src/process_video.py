@@ -1,6 +1,10 @@
 import cv2
+from matplotlib import pyplot as plt
 import numpy as np
-from scipy.io import savemat
+from scipy.io import savemat, loadmat
+
+from utils.feat_manipulation import feat_matching
+from utils.debug_funcs import compare_process_video_sift
 
 # Initialize SIFT detector
 sift = cv2.SIFT_create(2000)
@@ -23,12 +27,15 @@ while cap.isOpened():
         print(len(keypoints), descriptors.shape)
         print(type(keypoints), type(descriptors))
 
+
         features = []
         for i in range(len(keypoints)):
             features += [[keypoints[i].pt[0], keypoints[i].pt[1]] + np.ndarray.tolist(descriptors[i])]
         all_features[frame_count] = np.asarray(features).T
 
         frame_count += 1
+
+
 
         """ 
         # Convert keypoints to a numpy array of tuples (x, y) and store
@@ -68,6 +75,7 @@ out_mat_format = {'features': all_features}
 savemat("features.mat", out_mat_format)
 
 
+compare_process_video_sift("src/data/backcamera_s1.mp4", "features.mat", 0)
 
 
 
