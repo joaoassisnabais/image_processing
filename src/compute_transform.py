@@ -48,15 +48,6 @@ def main(config_file, feat_file = 'surf_features.mat'):
     f = loadmat(mat_path)
     feat = f['features']    
     feat=feat.squeeze() # remove the extra dimension
-    print(feat.shape)
-    print(feat[0].shape)
-    print(feat[0][0].shape)
-    print(type(feat))
-    print(type(feat[0]))
-    print(type(feat[0][0].shape))
-    print(feat.dtype)
-    print(feat[0].dtype)
-    print(feat[0][0].dtype)
 
     transforms_out_all = np.empty((0,11))
     
