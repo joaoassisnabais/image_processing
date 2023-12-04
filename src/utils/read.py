@@ -1,4 +1,9 @@
-def parse_config_file (file_path):
+import os
+
+def parse_config_file (relative_file_path):
+    """Parse a configuration file and return a dictionary of parameters and values."""
+    
+    file_path = os.path.join(os.path.dirname(__file__), '..', relative_file_path)
     config_dict = {} 
     
     with open(file_path, 'r') as file:
@@ -8,7 +13,7 @@ def parse_config_file (file_path):
             line = line.strip()
             
             # Ignore comments
-            if line.startswith('#'):
+            if line.startswith('#') or line == '':
                 continue
             
             # Split the line into tokens

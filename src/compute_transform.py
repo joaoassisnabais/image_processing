@@ -42,7 +42,7 @@ def main(config_file, feat_file = 'surf_features.mat'):
         out_path = config['transforms_out'][0][0]
 
     if debug:
-        mat_path = os.path.join(os.path.dirname(__file__), 'data', 'surf_features.mat')
+        mat_path = os.path.join(os.path.dirname(__file__), 'out', 'features.mat')
         map_or_all = 'map'
 
     f = loadmat(mat_path)
@@ -58,12 +58,10 @@ def main(config_file, feat_file = 'surf_features.mat'):
     print(feat[0].dtype)
     print(feat[0][0].dtype)
 
-
-
     transforms_out_all = np.empty((0,11))
     
     if map_or_all == 'map':
-        for k in range(1,len(feat)):
+        for k in range(1, len(feat)):
             transforms_out = np.array([])
 
             matches1, matches2, match1to2 = feat_matching(feat[k], feat[k-1])
@@ -84,14 +82,14 @@ def main(config_file, feat_file = 'surf_features.mat'):
 
                 print(matches1)
 
-
                 #kp1_good, kp2_good, matches_good = check_if_drawmatches_works(np.uint8(get_single_frame("src/data/backcamera_s1.mp4", k)), np.uint8(get_single_frame("src/data/backcamera_s1.mp4", k-1)))
- 
 
-                frames = [np.uint8(get_single_frame("src/data/backcamera_s1.mp4", k)), np.uint8(get_single_frame("src/data/backcamera_s1.mp4", k-1))]
+                frames = [get_single_frame("src/data/backcamera_s1.mp4", k), get_single_frame("src/data/backcamera_s1.mp4", k-1)]
                 img = cv.drawMatchesKnn(frames[0], tuple(kp1), frames[1], tuple(kp2), match1to2_cv, None, flags=cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
                 plt.imshow(img)
-                plt.show()
+                plt.show
+            
+            
             
             H = homography(matches1, matches2)
             print(H)
@@ -108,7 +106,6 @@ def main(config_file, feat_file = 'surf_features.mat'):
     savemat(out_path, out_mat_format)
 
 
-
 if __name__ == '__main__':
-    #main(sys.argv[1])
-    main(None)
+    main(sys.argv[1], sys.argv[2])
+    

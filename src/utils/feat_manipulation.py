@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 
-def feat_matching(feats1, feats2, k=2):
+def feat_matching(feats1, feats2, k=30):
     """
     Match features between two images using nearest neighbors.
 
@@ -47,15 +47,15 @@ def feat_matching(feats1, feats2, k=2):
     distances, indices = nbrs.kneighbors(des1, n_neighbors = k)
     
     # Apply Lowe's ratio test to find good matches
-    threshold = 0.75
+    threshold = 0.85
     good_matches = []
     for i, (dists, idxs) in enumerate(zip(distances, indices)):
         if dists[0] < threshold * dists[1]:
             good_matches.append((i, idxs[0]))
     
-    src_kps = kp1[[x for x, y in good_matches]]
-    dest_kps = kp2[[y for x, y in good_matches]]
-    matches1to2 = [[np.where(kp1==src_kps[i])[0][0], np.where(kp2==dest_kps[i])[0][0]] for i in range(len(good_matches))]
+    src_kps = kp1[[i for i, _ in good_matches]]
+    dest_kps = kp2[[i for _, i in good_matches]]
+    match1to2 = [[np.where(kp1==src_kps[i])[0][0], np.where(kp2==dest_kps[i])[0][0]] for i in range(len(good_matches))]
     
-    return src_kps, dest_kps, matches1to2
+    return src_kps, dest_kps, match1to2
 
