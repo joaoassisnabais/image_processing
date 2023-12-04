@@ -3,10 +3,10 @@ import numpy as np
 from scipy.io import savemat
 
 # Initialize SIFT detector
-sift = cv2.SIFT_create(500)
+sift = cv2.SIFT_create(10)
 
 # Open the video file
-cap = cv2.VideoCapture('/home/noe/Downloads/trymefirst.mp4')
+cap = cv2.VideoCapture('src/data/backcamera_s1.mp4')
 
 all_keypoints = []
 all_descriptors = []
@@ -38,7 +38,7 @@ keypoints_struct = {'frame_{}'.format(i): k for i, k in enumerate(all_keypoints)
 descriptors_struct = {'frame_{}'.format(i): d for i, d in enumerate(all_descriptors)}
 
 # Save the structured data to a .mat file
-savemat('keypoints_and_descriptors.mat', {'keypoints': keypoints_struct, 'descriptors': descriptors_struct})
+savemat('src/data/keypoints_and_descriptors.mat', {'keypoints': keypoints_struct, 'descriptors': descriptors_struct})
 
 
 
