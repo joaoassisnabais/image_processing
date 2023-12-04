@@ -6,12 +6,10 @@ from scipy.io import loadmat, savemat
 def get_single_frame(file_path, frame_number):
     
     cap = cv2.VideoCapture(file_path)
-
     
     if not cap.isOpened():
         print("Error: Could not open video file.")
         return None
-
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number - 1)
     ret, frame = cap.read()
@@ -42,11 +40,9 @@ def compare_process_video_sift(video_path, out_mat_path, frame_index):
 
     keypoints1_sift, descriptors1 = sift.detectAndCompute(frame1, None)
 
-
     image1 = cv2.drawKeypoints(frame1, keypointsCV1, 0, (255, 0, 0), flags=cv2.DRAW_MATCHES_FLAGS_DEFAULT)
 
     image2 = cv2.drawKeypoints(frame1, keypoints1_sift, 0, (255, 0, 0), flags=cv2.DRAW_MATCHES_FLAGS_DEFAULT)
-
 
     fig, axes = plt.subplots(1, 2, figsize=(10, 5)) 
     axes[0].imshow(image1)
@@ -58,18 +54,10 @@ def compare_process_video_sift(video_path, out_mat_path, frame_index):
 
     plt.show()
 
-
-
-
-
-
-
 def show_image_and_features(video_path, index1, index2, keypoints1, keypoints2):
-
 
     frame1 = get_single_frame(video_path, index1)
     frame2 = get_single_frame(video_path, index2)
-
 
     keypointsCV1 = []
     keypointsCV2 = []
@@ -79,11 +67,9 @@ def show_image_and_features(video_path, index1, index2, keypoints1, keypoints2):
     for i in range(len(keypoints2)):
         keypointsCV2.append(cv2.KeyPoint(int(keypoints2[i][0]), int(keypoints2[i][1]), 1))
 
-
     image1 = cv2.drawKeypoints(frame1, keypointsCV1, 0, (255, 0, 0), flags=cv2.DRAW_MATCHES_FLAGS_DEFAULT)
 
     image2 = cv2.drawKeypoints(frame2, keypointsCV2, 0, (255, 0, 0), flags=cv2.DRAW_MATCHES_FLAGS_DEFAULT)
-
 
     fig, axes = plt.subplots(1, 2, figsize=(10, 5)) 
     axes[0].imshow(image1)
@@ -99,7 +85,6 @@ def show_homogaphies(src, dest, H, video_path, index1, index2):
 
     image = get_single_frame(video_path,index1)
     image2 = get_single_frame(video_path,index2)
-
 
     transformed_image = cv2.warpPerspective(image, H, (image.shape[1], image.shape[0]))
     transformed_imageCV = cv2.warpPerspective(image, Hgood, (image.shape[1], image.shape[0]))

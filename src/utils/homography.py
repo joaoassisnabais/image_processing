@@ -22,7 +22,6 @@ def homography(src, dest):
 
     n = src_points.shape[0]
 
-
     A = []
     for i in range(len(src)):
         x, y = src[i]
@@ -44,7 +43,11 @@ def homography(src, dest):
     H = np.linalg.lstsq(A, b, rcond=None)[0]
     H = np.concatenate((H, np.array([1])))
 
-
     return H.reshape((3, 3))
 
 
+#Debug purposes
+if __name__ == "__main__":
+    src = np.array([[539.65, 45.03], [407.93, 151.75], [209.74, 101.28], [654.47, 404.03]])
+    dest = np.array([[493.24, 36.46], [1196.66, 48.09], [265.04, 103.65], [694.83, 566.55]])
+    print(homography(src, dest))
