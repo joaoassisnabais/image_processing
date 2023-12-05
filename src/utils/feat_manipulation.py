@@ -1,5 +1,9 @@
 import numpy as np
+import random
+import math
 from sklearn.neighbors import NearestNeighbors
+
+from utils.homography import homography
 
 def feat_matching(feats1, feats2, k=30):
     """
@@ -59,3 +63,66 @@ def feat_matching(feats1, feats2, k=30):
     
     return src_kps, dest_kps, match1to2
 
+def RANSAC(src_points, dest_points, threshold = 1):
+    """
+    Conducts RANSAC analysis on two sets of matching keypoints (source and destination).
+    It iteratively seeks the model that best represents the entire dataset by 
+    identifying the model that generates the highest count of inliers.
+    
+    Parameters
+    ----------
+    src_points : numpy.ndarray
+        Array of shape (N, 2) where we have the keypoints from the first image that have a corresponding point in the second image.
+    dest_points : numpy.ndarray
+        Array of shape (N, 2) where we have the keypoints from the second image that have a corresponding point in the first image.
+    threshold : float
+        Distance threshold to consider a point as an inlier.
+        
+    Returns
+    -------
+    best_src_inliers : numpy.ndarray
+        Array of shape (N, 2) where we have the keypoints from the first image that have a corresponding point in the second image.
+    best_dest_inliers : numpy.ndarray
+        Array of shape (N, 2) where we have the keypoints from the second image that have a corresponding point in the first image.
+    best_inlier_mask : numpy.ndarray
+        Array of shape (N, ) where we have a boolean mask of the inliers.
+    """
+    
+    # TODO: what is a good error threshold?
+
+    P = 0.99    # Prob of success
+    n = 4       # Number of samples
+    p = 0.5     # Prob of choosing an inlier (safe bet)
+    num_iterations = math.ceil(math.log(1 - P) / math.log(1 - (p ** n)))  # Iterations to be run in order to reach success P
+    
+    best_src_inliers = None
+    best_dest_inliers = None
+    best_n_inliers = np.NINF
+    best_inlier_mask = None
+    
+    for _ in range(num_iterations):
+        # Randomly select some points to form a line model
+        ids = np.random.choice(len(src_points), 6, replace = False)
+        
+        src_inliers = src_points[ids, :]
+        dest_inliers = dest_points[ids, :]
+        
+        # Compute the homography
+        H = homography(src_inliers, dest_inliers)
+        
+        # Apply the transformation to the source points
+        src_img = np.hstack((src_points, np.ones((src_points.shape[0], 1))))
+        res = H @ src_img.T
+        res = (res[:2, :] / res[2, :]).T
+
+        # Compute the distance between the transformed points and the destination points
+        inlier_mask = np.linalg.norm(res - dest_points, axis = 1) < threshold
+        n_inliers = inlier_mask.sum()
+
+        if n_inliers > best_n_inliers:
+            best_n_inliers = n_inliers
+            best_src_inliers = src_points[inlier_mask, :]
+            best_dest_inliers = dest_points[inlier_mask, :]
+            best_inlier_mask = inlier_mask
+            
+    return best_src_inliers, best_dest_inliers, best_inlier_mask
