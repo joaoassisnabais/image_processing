@@ -81,6 +81,25 @@ def show_image_and_features(video_path, index1, index2, keypoints1, keypoints2):
 
 
 def show_homogaphies(src, dest, H, video_path, index1, index2):
+    """
+    Given 2 frames, show the difference between the homography computed by
+    our algorithm and the homography computed by opencv.
+    
+    Parameters
+    ----------
+    src : numpy.ndarray
+        Array of shape (N, 2) where we have the keypoints from the first image that have a corresponding point in the second image.
+    dest : numpy.ndarray
+        Array of shape (N, 2) where we have the keypoints from the second image that have a corresponding point in the first image.
+    H : numpy.ndarray
+        Array of shape (3, 3) representing the homography matrix.
+    video_path : str
+        Path to the video file.
+    index1 : int
+        Index of the first frame.
+    index2 : int
+        Index of the second frame.
+    """
     Hgood, _ = cv2.findHomography(src, dest)
 
     image = get_single_frame(video_path,index1)

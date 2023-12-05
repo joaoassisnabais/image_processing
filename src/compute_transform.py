@@ -8,31 +8,12 @@ import matplotlib.pyplot as plt
 
 from utils import read
 from utils.feat_manipulation import feat_matching, RANSAC
-from utils.debug_funcs import show_image_and_features, get_single_frame, show_homogaphies, compare_process_video_sift
+from utils.debug_funcs import show_image_and_features, get_single_frame, show_homogaphies, compare_process_video_sift, check_if_drawmatches_works
 from utils.homography import homography
 
 debug = False
 
-def check_if_drawmatches_works(img1, img2):
-    # Initiate SIFT detector
-    sift = cv.SIFT_create()
-    # find the keypoints and descriptors with SIFT
-    kp1, des1 = sift.detectAndCompute(img1,None)
-    kp2, des2 = sift.detectAndCompute(img2,None)
-    # BFMatcher with default params
-    bf = cv.BFMatcher()
-    matches = bf.knnMatch(des1,des2,k=2)
-    # Apply ratio test
-    good = []
-    for m,n in matches:
-        if m.distance < 0.75*n.distance:
-            good.append([m])
-    # cv.drawMatchesKnn expects list of lists as matches.
-    img3 = cv.drawMatchesKnn(img1,kp1,img2,kp2,good,None,flags=cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-    plt.imshow(img3),plt.show()
-    return kp1, kp2, good
-
-def main(config_file, feat_file = 'surf_features.mat'):
+def main(config_file, feat_file):
 
     # Read the config file
     if config_file is not None:
@@ -40,7 +21,6 @@ def main(config_file, feat_file = 'surf_features.mat'):
         map_or_all = config['transforms'][0][1]
         mat_path = config['keypoints_out'][0][0]
         out_path = config['transforms_out'][0][0]
-
     
     mat_path = os.path.join(os.path.dirname(__file__), 'out', 'features.mat')
     map_or_all = 'map'
@@ -80,7 +60,10 @@ def main(config_file, feat_file = 'surf_features.mat'):
         
         matches1, matches2, mask = RANSAC(matches1, matches2)
         
+        show_image_and_features("src/data/backcamera_s1.mp4", k, k-1, matches1, matches2) # show the keypoints to make sure they make sense
+        
         H = homography(matches1, matches2)
+        print(H)
         
         if map_or_all == 'map':
             #obtain the homography from current frame to map from the homography from current frame to previous frame
@@ -93,12 +76,8 @@ def main(config_file, feat_file = 'surf_features.mat'):
         elif map_or_all == 'all':
 
             store_H += [np.copy(H)]
-
-
         else:
             print("bad config. file: transforms must be map or all")
-
-        print(H)
 
         if map_or_all == 'map':
             show_homogaphies(matches1, matches2, H, "src/data/backcamera_s1.mp4", 0, k)
@@ -107,7 +86,6 @@ def main(config_file, feat_file = 'surf_features.mat'):
             transforms_out = np.concatenate((transforms_out, H.reshape(9)))
 
             transforms_out_all = np.vstack((transforms_out_all,transforms_out))
-
 
     if map_or_all == 'all':
         for i in range(1,len(store_H)):
