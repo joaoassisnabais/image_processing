@@ -39,6 +39,9 @@ def main(config_file):
     if config_file is not None:
         config = parse_config_file(config_file)
         map_path = config['image_map'][0][0]
+        out_path = config['keypoints_out'][0][0]
+        
+    out_path = os.path.join(os.path.dirname(__file__), 'out', 'features.mat')
     
     # Initialize SIFT detector
     sift = cv2.SIFT_create(2000)
@@ -67,7 +70,6 @@ def main(config_file):
     all_features = np.asarray(all_features, dtype=object)
 
     out_mat_format = {'features': all_features}
-    out_path = os.path.join(os.path.dirname(__file__), 'out', 'features.mat')
     savemat(out_path, out_mat_format)
 
     if debug:

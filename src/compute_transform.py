@@ -13,7 +13,7 @@ from utils.homography import homography
 
 debug = False
 
-def main(config_file, feat_file):
+def main(config_file):
 
     # Read the config file
     if config_file is not None:
