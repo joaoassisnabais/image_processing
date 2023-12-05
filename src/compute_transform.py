@@ -48,57 +48,86 @@ def main(config_file, feat_file = 'surf_features.mat'):
     f = loadmat(mat_path)
     feat = f['features']    
     feat=feat.squeeze() # remove the extra dimension
-    print(feat.shape)
-    print(feat[0].shape)
-    print(feat[0][0].shape)
-    print(type(feat))
-    print(type(feat[0]))
-    print(type(feat[0][0].shape))
-    print(feat.dtype)
-    print(feat[0].dtype)
-    print(feat[0][0].dtype)
 
     transforms_out_all = np.empty((0,11))
     
-    if map_or_all == 'map':
-        for k in range(1, len(feat)):
-            transforms_out = np.array([])
 
-            matches1, matches2, match1to2 = feat_matching(feat[k], feat[k-1])
+
+    store_H = [np.identity(3)]  # index k -> homography between frame k and previus frame
+    for k in range(1, len(feat)):
+        transforms_out = np.array([])
+
+        matches1, matches2, match1to2 = feat_matching(feat[k], feat[k-1])
+        
+        if debug:
+            #compare_process_video_sift("src/data/backcamera_s1.mp4", "src/data/surf_features.mat", k)
+            #show_image_and_features("src/data/backcamera_s1.mp4", k, k-1, matches1, matches2) # show the keypoints to make sure they make sense
             
-            if debug:
-                #compare_process_video_sift("src/data/backcamera_s1.mp4", "src/data/surf_features.mat", k)
-                #show_image_and_features("src/data/backcamera_s1.mp4", k, k-1, matches1, matches2) # show the keypoints to make sure they make sense
-                
-                match1to2_cv = []
-                for i in range(len(match1to2)):
-                    match1to2_cv.append([cv.DMatch(match1to2[i][1],match1to2[i][0],0)])
-                
-                kp1 = []
-                kp2 = []                
-                for i in range(len(matches1)):
-                    kp1.append(cv.KeyPoint(int(matches1[i,0]),int(matches1[i,1]),1))
-                    kp2.append(cv.KeyPoint(int(matches2[i,0]),int(matches2[i,1]),1))
-
-                print(matches1)
-
-                #kp1_good, kp2_good, matches_good = check_if_drawmatches_works(np.uint8(get_single_frame("src/data/backcamera_s1.mp4", k)), np.uint8(get_single_frame("src/data/backcamera_s1.mp4", k-1)))
-
-                frames = [get_single_frame("src/data/backcamera_s1.mp4", k), get_single_frame("src/data/backcamera_s1.mp4", k-1)]
-                img = cv.drawMatchesKnn(frames[0], tuple(kp1), frames[1], tuple(kp2), match1to2_cv, None, flags=cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-                plt.imshow(img)
-                plt.show
+            match1to2_cv = []
+            for i in range(len(match1to2)):
+                match1to2_cv.append([cv.DMatch(match1to2[i][1],match1to2[i][0],0)])
             
-            
-            
-            H = homography(matches1, matches2)
-            print(H)
-            #show_homogaphies(matches1, matches2, H, "src/data/backcamera_s1.mp4", 0, i)
+            kp1 = []
+            kp2 = []                
+            for i in range(len(matches1)):
+                kp1.append(cv.KeyPoint(int(matches1[i,0]),int(matches1[i,1]),1))
+                kp2.append(cv.KeyPoint(int(matches2[i,0]),int(matches2[i,1]),1))
 
-            transforms_out = np.concatenate((transforms_out, np.asarray([0,i])))
+    
+
+            #kp1_good, kp2_good, matches_good = check_if_drawmatches_works(np.uint8(get_single_frame("src/data/backcamera_s1.mp4", k)), np.uint8(get_single_frame("src/data/backcamera_s1.mp4", k-1)))
+
+            frames = [get_single_frame("src/data/backcamera_s1.mp4", k), get_single_frame("src/data/backcamera_s1.mp4", k-1)]
+            img = cv.drawMatchesKnn(frames[0], tuple(kp1), frames[1], tuple(kp2), match1to2_cv, None, flags=cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+            plt.imshow(img)
+            plt.show
+        
+        
+        
+        H = homography(matches1, matches2)
+        
+        if map_or_all == 'map':
+            #obtain the homography from current frame to map from the homography from current frame to previus frame
+            if(k==1):
+                store_H += [np.copy(H)]
+            else:
+                store_H += [np.copy(H)]
+                H = np.matmul(H, np.linalg.inv(store_H[k-1]))
+                print(len(store_H),k-1)
+        elif map_or_all == 'all':
+
+            store_H += [np.copy(H)]
+
+
+        else:
+            print("bad config. file: transforms must be map or all")
+
+        print(H)
+
+        if map_or_all == 'map':
+            show_homogaphies(matches1, matches2, H, "src/data/backcamera_s1.mp4", 0, k)
+
+            transforms_out = np.concatenate((transforms_out, np.asarray([0,k])))
             transforms_out = np.concatenate((transforms_out, H.reshape(9)))
 
             transforms_out_all = np.vstack((transforms_out_all,transforms_out))
+
+
+    if map_or_all == 'all':
+        for i in range(1,len(store_H)):
+            
+            for j in range(i+1, len(store_H)):
+                H = np.matmul(H, np.linalg.inv(store_H[k-1]))
+
+                show_homogaphies(matches1, matches2, H, "src/data/backcamera_s1.mp4", 0, k)
+
+                transforms_out = np.array([])
+                transforms_out = np.concatenate((transforms_out, np.asarray([i,j])))
+                transforms_out = np.concatenate((transforms_out, H.reshape(9)))
+
+                transforms_out_all = np.vstack((transforms_out_all,transforms_out))
+
+
     transforms_out_all = transforms_out_all.T
     
 
