@@ -7,11 +7,11 @@ import cv2 as cv
 import matplotlib.pyplot as plt
 
 from utils import read
-from utils.feat_manipulation import feat_matching
+from utils.feat_manipulation import feat_matching, RANSAC
 from utils.debug_funcs import show_image_and_features, get_single_frame, show_homogaphies, compare_process_video_sift
 from utils.homography import homography
 
-debug = True
+debug = False
 
 def check_if_drawmatches_works(img1, img2):
     # Initiate SIFT detector
@@ -41,19 +41,17 @@ def main(config_file, feat_file = 'surf_features.mat'):
         mat_path = config['keypoints_out'][0][0]
         out_path = config['transforms_out'][0][0]
 
-    if debug:
-        mat_path = os.path.join(os.path.dirname(__file__), 'out', 'features.mat')
-        map_or_all = 'map'
+    
+    mat_path = os.path.join(os.path.dirname(__file__), 'out', 'features.mat')
+    map_or_all = 'map'
 
     f = loadmat(mat_path)
     feat = f['features']    
     feat=feat.squeeze() # remove the extra dimension
 
     transforms_out_all = np.empty((0,11))
-    
-
-
     store_H = [np.identity(3)]  # index k -> homography between frame k and previus frame
+    
     for k in range(1, len(feat)):
         transforms_out = np.array([])
 
@@ -73,8 +71,6 @@ def main(config_file, feat_file = 'surf_features.mat'):
                 kp1.append(cv.KeyPoint(int(matches1[i,0]),int(matches1[i,1]),1))
                 kp2.append(cv.KeyPoint(int(matches2[i,0]),int(matches2[i,1]),1))
 
-    
-
             #kp1_good, kp2_good, matches_good = check_if_drawmatches_works(np.uint8(get_single_frame("src/data/backcamera_s1.mp4", k)), np.uint8(get_single_frame("src/data/backcamera_s1.mp4", k-1)))
 
             frames = [get_single_frame("src/data/backcamera_s1.mp4", k), get_single_frame("src/data/backcamera_s1.mp4", k-1)]
@@ -82,12 +78,12 @@ def main(config_file, feat_file = 'surf_features.mat'):
             plt.imshow(img)
             plt.show
         
-        
+        matches1, matches2, mask = RANSAC(matches1, matches2)
         
         H = homography(matches1, matches2)
         
         if map_or_all == 'map':
-            #obtain the homography from current frame to map from the homography from current frame to previus frame
+            #obtain the homography from current frame to map from the homography from current frame to previous frame
             if(k==1):
                 store_H += [np.copy(H)]
             else:

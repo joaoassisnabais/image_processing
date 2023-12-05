@@ -63,7 +63,18 @@ def feat_matching(feats1, feats2, k=30):
     
     return src_kps, dest_kps, match1to2
 
-def RANSAC(src_points, dest_points, threshold = 1):
+def apply_transformation(H, src_points):
+    # Apply the transformation to the source points
+    src_img = np.hstack((src_points, np.ones((src_points.shape[0], 1))))
+    res = H @ src_img.T
+    return (res[:2, :] / res[2, :]).T
+
+def compute_inliers(res, dest_points, threshold):
+    # Compute the distance between the transformed points and the destination points
+    inlier_mask = np.linalg.norm(res - dest_points, axis = 1) < threshold
+    return inlier_mask, inlier_mask.sum()
+
+def RANSAC(src_points, dest_points, n = 4, threshold = 1.0):
     """
     Conducts RANSAC analysis on two sets of matching keypoints (source and destination).
     It iteratively seeks the model that best represents the entire dataset by 
@@ -75,6 +86,8 @@ def RANSAC(src_points, dest_points, threshold = 1):
         Array of shape (N, 2) where we have the keypoints from the first image that have a corresponding point in the second image.
     dest_points : numpy.ndarray
         Array of shape (N, 2) where we have the keypoints from the second image that have a corresponding point in the first image.
+    n : int
+        Number of points to use to compute the homography.
     threshold : float
         Distance threshold to consider a point as an inlier.
         
@@ -87,42 +100,29 @@ def RANSAC(src_points, dest_points, threshold = 1):
     best_inlier_mask : numpy.ndarray
         Array of shape (N, ) where we have a boolean mask of the inliers.
     """
-    
-    # TODO: what is a good error threshold?
-
-    P = 0.99    # Prob of success
+    P = 0.99    # Probability of success
     n = 4       # Number of samples
     p = 0.5     # Prob of choosing an inlier (safe bet)
     num_iterations = math.ceil(math.log(1 - P) / math.log(1 - (p ** n)))  # Iterations to be run in order to reach success P
-    
-    best_src_inliers = None
-    best_dest_inliers = None
-    best_n_inliers = np.NINF
+    best_n_inliers = 0
     best_inlier_mask = None
-    
+
     for _ in range(num_iterations):
         # Randomly select some points to form a line model
-        ids = np.random.choice(len(src_points), 6, replace = False)
-        
+        ids = np.random.choice(len(src_points), n, replace = False)
+
         src_inliers = src_points[ids, :]
         dest_inliers = dest_points[ids, :]
-        
-        # Compute the homography
-        H = homography(src_inliers, dest_inliers)
-        
-        # Apply the transformation to the source points
-        src_img = np.hstack((src_points, np.ones((src_points.shape[0], 1))))
-        res = H @ src_img.T
-        res = (res[:2, :] / res[2, :]).T
 
-        # Compute the distance between the transformed points and the destination points
-        inlier_mask = np.linalg.norm(res - dest_points, axis = 1) < threshold
-        n_inliers = inlier_mask.sum()
+        H = homography(src_inliers, dest_inliers)
+        res = apply_transformation(H, src_points)
+
+        inlier_mask, n_inliers = compute_inliers(res, dest_points, threshold)
 
         if n_inliers > best_n_inliers:
             best_n_inliers = n_inliers
             best_src_inliers = src_points[inlier_mask, :]
             best_dest_inliers = dest_points[inlier_mask, :]
             best_inlier_mask = inlier_mask
-            
+
     return best_src_inliers, best_dest_inliers, best_inlier_mask
