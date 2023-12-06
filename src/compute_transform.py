@@ -22,8 +22,8 @@ def main(config_file):
         mat_path = config['keypoints_out'][0][0]
         out_path = config['transforms_out'][0][0]
     
-    mat_path = os.path.join(os.path.dirname(__file__), 'out', 'features.mat')
-    map_or_all = 'map'
+    # mat_path = os.path.join(os.path.dirname(__file__), 'out', 'features.mat')
+
 
     f = loadmat(mat_path)
     feat = f['features']    
@@ -66,7 +66,7 @@ def main(config_file):
         if debug:
             store_matches += [[matches1,matches2]]
         
-        show_image_and_features("src/data/backcamera_s1.mp4", k, k-1, matches1, matches2) # show the keypoints to make sure they make sense
+        #show_image_and_features("src/data/backcamera_s1.mp4", k, k-1, matches1, matches2) # show the keypoints to make sure they make sense
         
         H = homography(matches1, matches2)
         print(H)
@@ -89,18 +89,30 @@ def main(config_file):
             print("bad config. file: transforms must be map or all")
 
         if map_or_all == 'map':
-            show_homogaphies(H, "src/data/backcamera_s1.mp4", k, 0)
+            #show_homogaphies(H, "src/data/backcamera_s1.mp4", k, 0)
 
             transforms_out = np.concatenate((transforms_out, np.asarray([0,k])))
             transforms_out = np.concatenate((transforms_out, H.reshape(9)))
 
             transforms_out_all = np.vstack((transforms_out_all,transforms_out))
 
+    print(map_or_all)
     if map_or_all == 'all':
-        for i in range(1,len(store_H)):
-            
+        print("here")
+
+        for i in range(1,len(store_H)-1):
+            H_i_to_previous_j = np.identity(3)
             for j in range(i+1, len(store_H)):
-                H = np.matmul(H, np.linalg.inv(store_H[k-1]))
+                if(j == i+1):
+                    H = np.linalg.inv(store_H[j])
+                    H_i_to_previous_j = np.copy(H)
+                else:
+                    H = np.matmul(np.linalg.inv(H_i_to_previous_j), store_H[j]) # H_j-1_to_i * H_j_to_j-1
+                    H_i_to_previous_j = np.copy(H)
+
+                 #H = np.matmul(H, np.linalg.inv(store_H[k-1]))
+
+                show_homogaphies(H, "src/data/backcamera_s1.mp4", i, j)
 
                 transforms_out = np.array([])
                 transforms_out = np.concatenate((transforms_out, np.asarray([i,j])))
