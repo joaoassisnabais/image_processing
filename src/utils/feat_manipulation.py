@@ -102,8 +102,8 @@ def RANSAC(src_points, dest_points, n = 4, threshold = 1.0):
     """
     P = 0.99    # Probability of success
     n = 4       # Number of samples
-    p = 0.5     # Prob of choosing an inlier (safe bet)
-    num_iterations = math.ceil(math.log(1 - P) / math.log(1 - (p ** n)))  # Iterations to be run in order to reach success P
+    w = 0.5     # Prob of choosing an inlier (safe bet)
+    num_iterations = math.ceil(math.log(1 - P) / math.log(1 - (w ** n)))  # Iterations to be run in order to reach success P
     best_n_inliers = 0
     best_inlier_mask = None
 
