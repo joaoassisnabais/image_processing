@@ -36,4 +36,6 @@ def convert_file_path(file_path):
         absolute_path = os.path.dirname(__file__)
         absolute_path = os.path.join(absolute_path, "..", file_path)
         return absolute_path.replace("/", "\\")
+    else:
+        return file_path
 

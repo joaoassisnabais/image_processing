@@ -20,9 +20,9 @@ def main(config_file):
         map_or_all = config['transforms'][0][1]
         mat_path = convert_file_path(config['keypoints_out'][0][0])
         out_path = convert_file_path(config['transforms_out'][0][0])
-    
+   
     #while we have no config file, use the default values
-    #mat_path = os.path.join(os.path.dirname(__file__), 'out', 'features.mat')
+    mat_path = os.path.join(os.path.dirname(__file__), 'out', 'features.mat')
     #map_or_all = 'map'
 
     f = loadmat(mat_path)
@@ -52,7 +52,8 @@ def main(config_file):
         show_homogaphies_given_feat_matches(matches1, matches2, H, video_path, k, k-1)
         
         if map_or_all == 'map':
-            #obtain the homography from current frame to map from the homography from current frame to previous frame
+            #obtain the homography from current frame to the previus frame
+            #then calculate the homography from current frame to map 
             if(k==1):
                 store_H += [np.copy(H)]
                 store_k_to_map += [np.copy(H)]
@@ -61,24 +62,27 @@ def main(config_file):
                 H = np.matmul(store_k_to_map[k-1], H) # H_k-1_to_map * H_k_to_k-1 #np.matmul(H, np.linalg.inv(store_H[k-1]))
                 store_k_to_map += [np.copy(H)]
                 print(len(store_H),k-1)
-
-        elif map_or_all == 'all':
-            store_H += [np.copy(H)]
-        else:
-            print("bad config. file: transforms must be map or all")
-
-        if map_or_all == 'map':
+            
             show_homogaphies(H, video_path, k, 0)      
 
+            #save homographies in the output format 
             transforms_out = np.concatenate((transforms_out, np.asarray([0,k])))
             transforms_out = np.concatenate((transforms_out, H.reshape(9)))
 
             transforms_out_all = np.vstack((transforms_out_all,transforms_out))
+            
 
-    print(map_or_all)
+        elif map_or_all == 'all':
+            #obtain the homography from current frame to the previus frame
+            store_H += [np.copy(H)]
+        else:
+            print("bad config. file: transforms must be map or all")
+
+
+
     if map_or_all == 'all':
-        print("here")
-
+        
+        #calculate the homography from current frame to all next frames
         for i in range(1,len(store_H)-1):
             H_i_to_previous_j = np.identity(3)
             for j in range(i+1, len(store_H)):
@@ -93,11 +97,14 @@ def main(config_file):
 
                 show_homogaphies(H, video_path, i, j)
 
+                #save homographies in the output format 
                 transforms_out = np.array([])
                 transforms_out = np.concatenate((transforms_out, np.asarray([i,j])))
                 transforms_out = np.concatenate((transforms_out, H.reshape(9)))
 
                 transforms_out_all = np.vstack((transforms_out_all,transforms_out))
+
+
 
     transforms_out_all = transforms_out_all.T
 
