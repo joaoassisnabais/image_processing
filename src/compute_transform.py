@@ -31,6 +31,10 @@ def main(config_file):
 
     transforms_out_all = np.empty((0,11))
     store_H = [np.identity(3)]  # index k -> homography between frame k and previus frame
+    store_k_to_map = [np.identity(3)] # index k -> homography between frame k and the map
+
+    store_matches = [[0,0],]  # used for debug. index k -> feature matches between frame k and the previus frame
+    
     
     for k in range(1, len(feat)):
         transforms_out = np.array([])
@@ -44,42 +48,58 @@ def main(config_file):
         matches1, matches2, _ = RANSAC(matches1, matches2)
         
         H = homography(matches1, matches2)
+
+        show_homogaphies_given_feat_matches(matches1, matches2, H, "src/data/backcamera_s1.mp4", k, k-1)
         
         if map_or_all == 'map':
             #obtain the homography from current frame to map from the homography from current frame to previous frame
             if(k==1):
                 store_H += [np.copy(H)]
+                store_k_to_map += [np.copy(H)]
             else:
                 store_H += [np.copy(H)]
-                H = np.matmul(H, np.linalg.inv(store_H[k-1]))
+                H = np.matmul(store_k_to_map[k-1], H) # H_k-1_to_map * H_k_to_k-1 #np.matmul(H, np.linalg.inv(store_H[k-1]))
+                store_k_to_map += [np.copy(H)]
                 print(len(store_H),k-1)
+
         elif map_or_all == 'all':
+
             store_H += [np.copy(H)]
         else:
             print("bad config. file: transforms must be map or all")
 
         if map_or_all == 'map':
-            show_homogaphies(matches1, matches2, H, video_path, 0, k)
+            show_homogaphies(H, "src/data/backcamera_s1.mp4", k, 0)
+                        
 
             transforms_out = np.concatenate((transforms_out, np.asarray([0,k])))
             transforms_out = np.concatenate((transforms_out, H.reshape(9)))
 
             transforms_out_all = np.vstack((transforms_out_all,transforms_out))
 
+    print(map_or_all)
     if map_or_all == 'all':
-        for i in range(1,len(store_H)):
-            
-            for j in range(i+1, len(store_H)):
-                H = np.matmul(H, np.linalg.inv(store_H[k-1]))
+        print("here")
 
-                show_homogaphies(matches1, matches2, H, video_path, 0, k)
+        for i in range(1,len(store_H)-1):
+            H_i_to_previous_j = np.identity(3)
+            for j in range(i+1, len(store_H)):
+                if(j == i+1):
+                    H = np.linalg.inv(store_H[j])
+                    H_i_to_previous_j = np.copy(H)
+                else:
+                    H = np.matmul(np.linalg.inv(H_i_to_previous_j), store_H[j]) # H_j-1_to_i * H_j_to_j-1
+                    H_i_to_previous_j = np.copy(H)
+
+                 #H = np.matmul(H, np.linalg.inv(store_H[k-1]))
+
+                show_homogaphies(H, "src/data/backcamera_s1.mp4", i, j)
 
                 transforms_out = np.array([])
                 transforms_out = np.concatenate((transforms_out, np.asarray([i,j])))
                 transforms_out = np.concatenate((transforms_out, H.reshape(9)))
 
                 transforms_out_all = np.vstack((transforms_out_all,transforms_out))
-
 
     transforms_out_all = transforms_out_all.T
     

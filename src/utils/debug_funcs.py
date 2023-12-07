@@ -1,6 +1,7 @@
 import cv2
 from matplotlib import pyplot as plt
 from scipy.io import loadmat, savemat
+import numpy as np
 
 def get_single_frame(file_path, frame_number):
     cap = cv2.VideoCapture(file_path)
@@ -77,7 +78,7 @@ def show_image_and_keypoints(video_path, index1, index2, keypoints1, keypoints2)
 
     plt.show()
 
-def show_homogaphies(src, dest, H, video_path, index1, index2):
+def show_homogaphies_given_feat_matches(src, dest, H, video_path, index1, index2):
     """
     Given 2 frames, show the difference between the homography computed by
     our algorithm and the homography computed by opencv.
@@ -131,3 +132,65 @@ def show_matches(matches1, matches2, match1to2, video_path, frame_index1, frame_
             img = cv2.drawMatchesKnn(frames[0], tuple(kp1), frames[1], tuple(kp2), match1to2_cv, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
             plt.imshow(img)
             plt.show
+
+def show_homogaphies(H, video_path, index1, index2):
+    """
+    Given 2 frames, show the difference between the homography computed by
+    our algorithm and the homography computed by opencv.
+    
+    Parameters
+    ----------
+    src : numpy.ndarray
+        Array of shape (N, 2) where we have the keypoints from the first image that have a corresponding point in the second image.
+    dest : numpy.ndarray
+        Array of shape (N, 2) where we have the keypoints from the second image that have a corresponding point in the first image.
+    H : numpy.ndarray
+        Array of shape (3, 3) representing the homography matrix.
+    video_path : str
+        Path to the video file.
+    index1 : int
+        Index of the first frame.
+    index2 : int
+        Index of the second frame.
+    """
+    
+
+    image = get_single_frame(video_path,index1)
+    image2 = get_single_frame(video_path,index2)
+
+    sift = cv2.SIFT_create(2000)
+    keypoints1, descriptors1 = sift.detectAndCompute(image, None)
+    keypoints2, descriptors2 = sift.detectAndCompute(image2, None)
+
+
+    bf = cv2.BFMatcher()
+    matches = bf.knnMatch(descriptors1, descriptors2, k=2)
+
+
+    good_matches = []
+    for m, n in matches:
+        if m.distance < 0.75 * n.distance:
+            good_matches.append(m)
+
+
+    src_pts = np.float32([keypoints1[m.queryIdx].pt for m in good_matches]).reshape(-1, 1, 2)
+    dst_pts = np.float32([keypoints2[m.trainIdx].pt for m in good_matches]).reshape(-1, 1, 2)
+
+    
+
+    homography_matrix, _ = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
+
+
+    transformed_image = cv2.warpPerspective(image, H, (image.shape[1], image.shape[0]))
+    transformed_imageCV = cv2.warpPerspective(image, homography_matrix, (image.shape[1], image.shape[0]))
+
+    fig, axes = plt.subplots(2, 2, figsize=(10, 10)) 
+    axes[0, 0].imshow(image)
+    axes[0, 0].axis('off') 
+    axes[0, 1].imshow(image2)
+    axes[0, 1].axis('off') 
+    axes[1, 0].imshow(transformed_image)
+    axes[1, 0].axis('off') 
+    axes[1, 1].imshow(transformed_imageCV)
+    axes[1, 1].axis('off') 
+    plt.show()
