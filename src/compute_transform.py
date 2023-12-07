@@ -49,7 +49,7 @@ def main(config_file):
         
         H = homography(matches1, matches2)
 
-        show_homogaphies_given_feat_matches(matches1, matches2, H, "src/data/backcamera_s1.mp4", k, k-1)
+        show_homogaphies_given_feat_matches(matches1, matches2, H, video_path, k, k-1)
         
         if map_or_all == 'map':
             #obtain the homography from current frame to map from the homography from current frame to previous frame
@@ -93,7 +93,7 @@ def main(config_file):
 
                  #H = np.matmul(H, np.linalg.inv(store_H[k-1]))
 
-                show_homogaphies(H, "src/data/backcamera_s1.mp4", i, j)
+                show_homogaphies(H, video_path, i, j)
 
                 transforms_out = np.array([])
                 transforms_out = np.concatenate((transforms_out, np.asarray([i,j])))
