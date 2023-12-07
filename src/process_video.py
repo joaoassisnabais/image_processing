@@ -1,6 +1,6 @@
 import os
+import sys
 import cv2
-from matplotlib import pyplot as plt
 import numpy as np
 from scipy.io import savemat
 
@@ -38,17 +38,23 @@ def main(config_file):
     # Read the config file
     if config_file is not None:
         config = parse_config_file(config_file)
-        map_path = config['image_map'][0][0]
+        try :
+            map_path = config['image_map'][0][0]
+            map_exists = 1
+        except KeyError:
+            map_path = None
+            map_exists = 0
         out_path = config['keypoints_out'][0][0]
-        
+    
+    # If no config file is provided, use the default values
     out_path = os.path.join(os.path.dirname(__file__), 'out', 'features.mat')
     
     # Initialize SIFT detector
     sift = cv2.SIFT_create(2000)
     # Open the video file
     cap = cv2.VideoCapture('src/data/backcamera_s1.mp4')
-
-    all_features = np.empty((int(cap.get(cv2.CAP_PROP_FRAME_COUNT)),),dtype=object)
+    
+    all_features = np.empty((int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) + map_exists,),dtype=object)
     frame_count = 0
 
     #If there is a map image, compute the features for it
@@ -76,5 +82,4 @@ def main(config_file):
         compare_process_video_sift("src/data/backcamera_s1.mp4", out_path, 0)
 
 if __name__ == '__main__':
-    main()
-
+    main(sys.argv[1])

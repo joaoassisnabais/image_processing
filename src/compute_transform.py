@@ -3,25 +3,24 @@ import os
 import sys
 import numpy as np
 from scipy.io import loadmat, savemat
-import cv2 as cv
-import matplotlib.pyplot as plt
 
-from utils import read
+from utils.read import parse_config_file
+from utils.debug_funcs import *
 from utils.feat_manipulation import feat_matching, RANSAC
-from utils.debug_funcs import show_image_and_features, get_single_frame, show_homogaphies, compare_process_video_sift
 from utils.homography import homography
 
-debug = False
+debug = True
 
 def main(config_file):
 
     # Read the config file
     if config_file is not None:
-        config = read.parse_config_file(config_file)
+        config = parse_config_file(config_file)
         map_or_all = config['transforms'][0][1]
         mat_path = config['keypoints_out'][0][0]
         out_path = config['transforms_out'][0][0]
     
+    #while we have no config file, use the default values
     mat_path = os.path.join(os.path.dirname(__file__), 'out', 'features.mat')
     map_or_all = 'map'
 
@@ -35,35 +34,15 @@ def main(config_file):
     for k in range(1, len(feat)):
         transforms_out = np.array([])
 
-        matches1, matches2, match1to2 = feat_matching(feat[k], feat[k-1])
+        matches1, matches2, matches1to2 = feat_matching(feat[k], feat[k-1])
         
         if debug:
-            #compare_process_video_sift("src/data/trymefirst.mp4", "src/data/surf_features.mat", k)
-            #show_image_and_features("src/data/trymefirst.mp4", k, k-1, matches1, matches2) # show the keypoints to make sure they make sense
-            
-            match1to2_cv = []
-            for i in range(len(match1to2)):
-                match1to2_cv.append([cv.DMatch(match1to2[i][1],match1to2[i][0],0)])
-            
-            kp1 = []
-            kp2 = []                
-            for i in range(len(matches1)):
-                kp1.append(cv.KeyPoint(int(matches1[i,0]),int(matches1[i,1]),1))
-                kp2.append(cv.KeyPoint(int(matches2[i,0]),int(matches2[i,1]),1))
-
-            #kp1_good, kp2_good, matches_good = check_if_drawmatches_works(np.uint8(get_single_frame("src/data/trymefirst.mp4", k)), np.uint8(get_single_frame("src/data/trymefirst.mp4", k-1)))
-
-            frames = [get_single_frame("src/data/trymefirst.mp4", k), get_single_frame("src/data/trymefirst.mp4", k-1)]
-            img = cv.drawMatchesKnn(frames[0], tuple(kp1), frames[1], tuple(kp2), match1to2_cv, None, flags=cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-            plt.imshow(img)
-            plt.show
+            show_image_and_keypoints("src/data/backcamera_s1.mp4", k, k-1, matches1, matches2)
+            show_matches(matches1, matches2, matches1to2, "src/data/backcamera_s1.mp4", 0, k)
         
-        matches1, matches2, mask = RANSAC(matches1, matches2)
-        
-        show_image_and_features("src/data/trymefirst.mp4", k, k-1, matches1, matches2) # show the keypoints to make sure they make sense
+        matches1, matches2, _ = RANSAC(matches1, matches2)
         
         H = homography(matches1, matches2)
-        print(H)
         
         if map_or_all == 'map':
             #obtain the homography from current frame to map from the homography from current frame to previous frame
@@ -74,7 +53,6 @@ def main(config_file):
                 H = np.matmul(H, np.linalg.inv(store_H[k-1]))
                 print(len(store_H),k-1)
         elif map_or_all == 'all':
-
             store_H += [np.copy(H)]
         else:
             print("bad config. file: transforms must be map or all")

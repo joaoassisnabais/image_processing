@@ -1,6 +1,5 @@
 import numpy as np
 
-
 def homography(src, dest):
     """
     Compute the homography tranformation between two sets of points

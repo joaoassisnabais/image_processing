@@ -2,9 +2,7 @@ import cv2
 from matplotlib import pyplot as plt
 from scipy.io import loadmat, savemat
 
-
 def get_single_frame(file_path, frame_number):
-    
     cap = cv2.VideoCapture(file_path)
     
     if not cap.isOpened():
@@ -44,7 +42,7 @@ def compare_process_video_sift(video_path, out_mat_path, frame_index):
 
     image2 = cv2.drawKeypoints(frame1, keypoints1_sift, 0, (255, 0, 0), flags=cv2.DRAW_MATCHES_FLAGS_DEFAULT)
 
-    fig, axes = plt.subplots(1, 2, figsize=(10, 5)) 
+    _, axes = plt.subplots(1, 2, figsize=(10, 5)) 
     axes[0].imshow(image1)
     axes[0].axis('off') 
 
@@ -54,7 +52,7 @@ def compare_process_video_sift(video_path, out_mat_path, frame_index):
 
     plt.show()
 
-def show_image_and_features(video_path, index1, index2, keypoints1, keypoints2):
+def show_image_and_keypoints(video_path, index1, index2, keypoints1, keypoints2):
 
     frame1 = get_single_frame(video_path, index1)
     frame2 = get_single_frame(video_path, index2)
@@ -78,7 +76,6 @@ def show_image_and_features(video_path, index1, index2, keypoints1, keypoints2):
     axes[1].axis('off') 
 
     plt.show()
-
 
 def show_homogaphies(src, dest, H, video_path, index1, index2):
     """
@@ -118,3 +115,19 @@ def show_homogaphies(src, dest, H, video_path, index1, index2):
     axes[1, 1].imshow(transformed_imageCV)
     axes[1, 1].axis('off') 
     plt.show()
+    
+def show_matches(matches1, matches2, match1to2, video_path, frame_index1, frame_index2):
+            match1to2_cv = []
+            for i in range(len(match1to2)):
+                match1to2_cv.append([cv2.DMatch(match1to2[i][1],match1to2[i][0],0)])
+            
+            kp1 = []
+            kp2 = []                
+            for i in range(len(matches1)):
+                kp1.append(cv2.KeyPoint(int(matches1[i,0]),int(matches1[i,1]),1))
+                kp2.append(cv2.KeyPoint(int(matches2[i,0]),int(matches2[i,1]),1))
+
+            frames = [get_single_frame(video_path, frame_index1), get_single_frame(video_path, frame_index2)]
+            img = cv2.drawMatchesKnn(frames[0], tuple(kp1), frames[1], tuple(kp2), match1to2_cv, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+            plt.imshow(img)
+            plt.show
