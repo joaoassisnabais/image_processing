@@ -4,7 +4,7 @@ import sys
 import numpy as np
 from scipy.io import loadmat, savemat
 
-from utils.read import parse_config_file
+from utils.read import parse_config_file, convert_file_path
 from utils.debug_funcs import *
 from utils.feat_manipulation import feat_matching, RANSAC
 from utils.homography import homography
@@ -16,10 +16,10 @@ def main(config_file):
     # Read the config file
     if config_file is not None:
         config = parse_config_file(config_file)
-        video_path = config['videos'][0][0]
+        video_path = convert_file_path(config['videos'][0][0])
         map_or_all = config['transforms'][0][1]
-        mat_path = config['keypoints_out'][0][0]
-        out_path = config['transforms_out'][0][0]
+        mat_path = convert_file_path(config['keypoints_out'][0][0])
+        out_path = convert_file_path(config['transforms_out'][0][0])
     
     #while we have no config file, use the default values
     #mat_path = os.path.join(os.path.dirname(__file__), 'out', 'features.mat')
@@ -63,14 +63,12 @@ def main(config_file):
                 print(len(store_H),k-1)
 
         elif map_or_all == 'all':
-
             store_H += [np.copy(H)]
         else:
             print("bad config. file: transforms must be map or all")
 
         if map_or_all == 'map':
-            show_homogaphies(H, "src/data/backcamera_s1.mp4", k, 0)
-                        
+            show_homogaphies(H, video_path, k, 0)      
 
             transforms_out = np.concatenate((transforms_out, np.asarray([0,k])))
             transforms_out = np.concatenate((transforms_out, H.reshape(9)))
@@ -102,7 +100,6 @@ def main(config_file):
                 transforms_out_all = np.vstack((transforms_out_all,transforms_out))
 
     transforms_out_all = transforms_out_all.T
-    
 
     out_mat_format = {"matrix": transforms_out_all, "label": "transforms out"}
     savemat(out_path, out_mat_format)

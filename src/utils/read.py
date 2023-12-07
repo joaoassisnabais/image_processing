@@ -30,7 +30,10 @@ def parse_config_file (relative_file_path):
     
     return config_dict
 
-def get_correct_path(path):
-    """Return the absolute path of a file."""
+def convert_file_path(file_path):
+    """Convert a file path to the correct format for the current OS."""
+    if os.name == 'nt':  # 'nt' represents Windows OS
+        absolute_path = os.path.dirname(__file__)
+        absolute_path = os.path.join(absolute_path, "..", file_path)
+        return absolute_path.replace("/", "\\")
 
-    return os.path.join(os.path.dirname(__file__), '..', path)

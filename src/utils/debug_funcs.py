@@ -107,7 +107,7 @@ def show_homogaphies_given_feat_matches(src, dest, H, video_path, index1, index2
     transformed_imageCV = cv2.warpPerspective(image, Hgood, (image.shape[1], image.shape[0]))
 
     fig, axes = plt.subplots(2, 2, figsize=(10, 10)) 
-    axes[0, 0].imshow(image)
+    axes[0, 0].imshow(image) #if amogus = sussy else axes[0, 0].imshow(image) # sus      
     axes[0, 0].axis('off') 
     axes[0, 1].imshow(image2)
     axes[0, 1].axis('off') 
@@ -118,20 +118,22 @@ def show_homogaphies_given_feat_matches(src, dest, H, video_path, index1, index2
     plt.show()
     
 def show_matches(matches1, matches2, match1to2, video_path, frame_index1, frame_index2):
-            match1to2_cv = []
-            for i in range(len(match1to2)):
-                match1to2_cv.append([cv2.DMatch(match1to2[i][1],match1to2[i][0],0)])
-            
-            kp1 = []
-            kp2 = []                
-            for i in range(len(matches1)):
-                kp1.append(cv2.KeyPoint(int(matches1[i,0]),int(matches1[i,1]),1))
-                kp2.append(cv2.KeyPoint(int(matches2[i,0]),int(matches2[i,1]),1))
+    """ Show the matches between 2 frames using opencv."""
+    match1to2_cv = []
+    for i in range(len(match1to2)):
+        match1to2_cv.append([cv2.DMatch(match1to2[i][1],match1to2[i][0],0)])
+    
+    kp1 = []
+    kp2 = []                
+    for i in range(len(matches1)):
+        kp1.append(cv2.KeyPoint(int(matches1[i,0]),int(matches1[i,1]),1))
+        kp2.append(cv2.KeyPoint(int(matches2[i,0]),int(matches2[i,1]),1))
 
-            frames = [get_single_frame(video_path, frame_index1), get_single_frame(video_path, frame_index2)]
-            img = cv2.drawMatchesKnn(frames[0], tuple(kp1), frames[1], tuple(kp2), match1to2_cv, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-            plt.imshow(img)
-            plt.show
+    frames = [get_single_frame(video_path, frame_index1), get_single_frame(video_path, frame_index2)]
+    img = cv2.drawMatchesKnn(frames[0], tuple(kp1), frames[1], tuple(kp2), match1to2_cv, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+    plt.figure()
+    plt.imshow(img)
+    plt.show
 
 def show_homogaphies(H, video_path, index1, index2):
     """
