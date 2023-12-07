@@ -29,3 +29,8 @@ def parse_config_file (relative_file_path):
                 config_dict[param_name] = param_values
     
     return config_dict
+
+def get_correct_path(path):
+    """Return the absolute path of a file."""
+
+    return os.path.join(os.path.dirname(__file__), '..', path)

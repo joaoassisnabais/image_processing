@@ -16,13 +16,14 @@ def main(config_file):
     # Read the config file
     if config_file is not None:
         config = parse_config_file(config_file)
+        video_path = config['videos'][0][0]
         map_or_all = config['transforms'][0][1]
         mat_path = config['keypoints_out'][0][0]
         out_path = config['transforms_out'][0][0]
     
     #while we have no config file, use the default values
-    mat_path = os.path.join(os.path.dirname(__file__), 'out', 'features.mat')
-    map_or_all = 'map'
+    #mat_path = os.path.join(os.path.dirname(__file__), 'out', 'features.mat')
+    #map_or_all = 'map'
 
     f = loadmat(mat_path)
     feat = f['features']    
@@ -37,8 +38,8 @@ def main(config_file):
         matches1, matches2, matches1to2 = feat_matching(feat[k], feat[k-1])
         
         if debug:
-            show_image_and_keypoints("src/data/backcamera_s1.mp4", k, k-1, matches1, matches2)
-            show_matches(matches1, matches2, matches1to2, "src/data/backcamera_s1.mp4", 0, k)
+            show_image_and_keypoints(video_path, k, k-1, matches1, matches2)
+            show_matches(matches1, matches2, matches1to2, video_path, 0, k)
         
         matches1, matches2, _ = RANSAC(matches1, matches2)
         
@@ -58,7 +59,7 @@ def main(config_file):
             print("bad config. file: transforms must be map or all")
 
         if map_or_all == 'map':
-            show_homogaphies(matches1, matches2, H, "src/data/backcamera_s1.mp4", 0, k)
+            show_homogaphies(matches1, matches2, H, video_path, 0, k)
 
             transforms_out = np.concatenate((transforms_out, np.asarray([0,k])))
             transforms_out = np.concatenate((transforms_out, H.reshape(9)))
@@ -71,7 +72,7 @@ def main(config_file):
             for j in range(i+1, len(store_H)):
                 H = np.matmul(H, np.linalg.inv(store_H[k-1]))
 
-                show_homogaphies(matches1, matches2, H, "src/data/backcamera_s1.mp4", 0, k)
+                show_homogaphies(matches1, matches2, H, video_path, 0, k)
 
                 transforms_out = np.array([])
                 transforms_out = np.concatenate((transforms_out, np.asarray([i,j])))
