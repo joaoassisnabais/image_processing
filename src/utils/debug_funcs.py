@@ -119,7 +119,7 @@ def show_homogaphies_given_feat_matches(src, dest, H, video_path, index1, index2
     
 def show_matches(matches1, matches2, match1to2, video_path, frame_index1, frame_index2):
     """ Show the matches between 2 frames using opencv."""
-    match1to2_cv = []
+    """match1to2_cv = []
     for i in range(len(match1to2)):
         match1to2_cv.append([cv2.DMatch(match1to2[i][1],match1to2[i][0],0)])
     
@@ -133,7 +133,46 @@ def show_matches(matches1, matches2, match1to2, video_path, frame_index1, frame_
     img = cv2.drawMatchesKnn(frames[0], tuple(kp1), frames[1], tuple(kp2), match1to2_cv, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
     plt.figure()
     plt.imshow(img)
-    plt.show
+    plt.show"""
+
+    frame1 = get_single_frame(video_path, frame_index1)
+    frame2 = get_single_frame(video_path, frame_index2)
+    
+    print(matches1)
+    print('-----------')
+    print(matches2)
+    
+    # Create a figure with two subplots side by side
+    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+
+    # Scatter plot for the first set of points on the left subplot
+    axs[0].scatter(matches1[:, 0], matches1[:, 1], marker="+", color='#2e8bc0', s=30)
+
+    # Plot the first image on the left
+    plt.subplot(1, 2, 1)
+    plt.imshow(frame1)
+    plt.title('Frame %d' % frame_index1)
+    
+    plt.axis('off')
+    plt.tight_layout()
+
+    # Scatter plot for the first set of points on the left subplot
+    axs[1].scatter(matches2[:, 0], matches2[:, 1], marker="+", color='#2e8bc0', s=30)
+
+    # Plot the second image on the right
+    plt.subplot(1, 2, 2)
+    plt.imshow(frame2)
+    plt.title('Frame %d' % frame_index2)
+    
+    # Draw lines connecting points from the first image to the second image
+    for p1, p2 in zip(matches1, matches2):
+        axs[0].plot([p1[0], p2[0]], [p1[1], p2[1]], 'k-', lw=1)  # 'k-' represents a black line
+
+
+    plt.axis('off')
+    plt.tight_layout()
+
+    plt.show()
 
 def show_homogaphies(H, video_path, index1, index2):
     """

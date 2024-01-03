@@ -30,8 +30,8 @@ def main(config_file):
     feat=feat.squeeze() # remove the extra dimension
 
     transforms_out_all = np.empty((0,11))
-    store_H = [np.identity(3)]  # index k -> homography between frame k and previus frame
-    store_k_to_map = [np.identity(3)] # index k -> homography between frame k and the map
+    store_H = [np.identity(3)]          # index k -> homography between frame k and previus frame
+    store_k_to_map = [np.identity(3)]   # index k -> homography between frame k and the map
 
     store_matches = [[0,0],]  # used for debug. index k -> feature matches between frame k and the previus frame
     
@@ -40,6 +40,7 @@ def main(config_file):
         transforms_out = np.array([])
 
         matches1, matches2, matches1to2 = feat_matching(feat[k], feat[k-1])
+        
         
         if debug:
             show_image_and_keypoints(video_path, k, k-1, matches1, matches2)
