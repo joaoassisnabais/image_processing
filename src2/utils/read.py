@@ -32,8 +32,6 @@ def parse_config_file (relative_file_path):
 
 def convert_file_path(file_path):
     """Convert a file path to the correct format for the current OS."""
-    if file_path is None:
-        return None
     if os.name == 'nt':  # 'nt' represents Windows OS
         absolute_path = os.path.dirname(__file__)
         absolute_path = os.path.join(absolute_path, "..", file_path)
