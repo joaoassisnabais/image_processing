@@ -16,6 +16,7 @@ def main(config_file):
     # Read the config file
     if config_file is not None:
         config = parse_config_file(config_file)
+        map_path = convert_file_path(config['image_map'][0][0])
         video_path = convert_file_path(config['videos'][0][0])
         map_or_all = config['transforms'][0][1]
         mat_path = convert_file_path(config['keypoints_out'][0][0])

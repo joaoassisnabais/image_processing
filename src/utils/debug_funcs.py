@@ -2,6 +2,8 @@ import cv2
 from matplotlib import pyplot as plt
 from scipy.io import loadmat, savemat
 import numpy as np
+import matplotlib.image as mpimg
+
 
 def get_single_frame(file_path, frame_number):
     cap = cv2.VideoCapture(file_path)
@@ -196,3 +198,39 @@ def show_homogaphies(H, video_path, index1, index2):
     axes[1, 1].imshow(transformed_imageCV)
     axes[1, 1].axis('off') 
     plt.show()
+
+
+
+def draw_on_map(map_path, homographies):
+
+    # Read the image
+    img = mpimg.imread(map_path)
+    height, width = img.shape[:2]
+
+    # Camera position (fixed)
+    cam_pos = np.array([width/2, height/2, 1])
+    x = [width/2]
+    y = [height/2]
+
+    for i in range(len(homographies)):
+        
+        transf = np.identity(3)
+        for j in range(i-1,0,-1):
+            transf = transf @ homographies[j]
+            
+        point = transf @ cam_pos                # Coordinates in homogeneous form
+        x.append(float(point[0]/point[2]))      # Divide by the last to convert to cartesian
+        y.append(float(point[1]/point[2]))      # Divide by the last to convert to cartesian
+
+    # Display the image using imshow
+    plt.imshow(img)
+    plt.scatter(x, y, color='red', s=1)
+    plt.scatter(x[0], y[0], marker="x", color='#2e8bc0', s=30)
+    plt.scatter(x[-1], y[-1], marker="x", color='#2e8bc0', s=30)
+    plt.text(x[0]+20, y[0]-10, 'Start', fontsize=9, verticalalignment='bottom', horizontalalignment='right', color='white')
+    plt.text(x[-1]+15, y[-1]+10, 'End', fontsize=9, verticalalignment='top', horizontalalignment='right', color='white')
+    plt.axis('off')
+    plt.tight_layout()
+    plt.show()
+
+    return
