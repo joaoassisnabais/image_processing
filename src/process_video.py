@@ -40,10 +40,8 @@ def main(config_file):
         config = parse_config_file(config_file)
         try :
             map_path = config['image_map'][0][0]
-            map_exists = 1
         except KeyError:
             map_path = None
-            map_exists = 0
         out_path = config['keypoints_out'][0][0]
     
     # If no config file is provided, use the default values
@@ -54,15 +52,9 @@ def main(config_file):
     # Open the video file
     cap = cv2.VideoCapture('src/data/backcamera_s1.mp4')
     
-    all_features = np.empty((int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) + map_exists,),dtype=object)
+    all_features = np.empty((int(cap.get(cv2.CAP_PROP_FRAME_COUNT)),),dtype=object)
     frame_count = 0
 
-    #If there is a map image, compute the features for it
-    if map_path:
-        map_img = cv2.imread(map_path)
-        map_img = cv2.cvtColor(map_img, cv2.COLOR_BGR2GRAY)
-        all_features[frame_count] = get_features(map_img, sift)
-        frame_count += 1
 
     while cap.isOpened():
         ret, frame = cap.read()
